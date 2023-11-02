@@ -1,3 +1,221 @@
+create database clay_biosecurityDB; 
+use clay_biosecurityDB; 
+
+
+/* ddl */
+
+create table pais (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50)
+); 
+
+create table departamento (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    idPaisFk int,
+    constraint fk_departamento_pais foreign key (idPaisFk) references pais(id)
+);
+
+create table municipio (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    idDepartamentoFk int,
+    constraint fk_municipio_departamento foreign key (idDepartamentoFk) references departamento(id)
+);
+
+create table empresa (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nit varchar(50),
+    razon_social text, 
+    representante_legal varchar(50),
+    fechaCreacion date,
+    idMunicipioFk int,
+    constraint fk_empresa_municipio foreign key (idMunicipioFk) references municipio(id)
+);
+
+create table cargos (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50),
+    sueldo_base double
+); 
+
+create table tipo_persona (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50)
+); 
+
+create table empleado (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    idCargoFk int,
+    fecha_ingreso date, 
+    idMunicipioFk int,
+    constraint fk_empleado_cargo foreign key (idCargoFk) references cargos(id),
+    constraint fk_empleado_municipio foreign key (idMunicipioFk) references municipio(id)
+);
+
+create table tipo_estado (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+);
+
+create table estado (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50),
+    idTipoEstadoFk int, 
+    constraint fk_estado_tipo_estado foreign key (idTipoEstadoFk) references tipo_estado(id)
+); 
+
+create table cliente (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    idCliente varchar(255),
+    idTipoPersonaFk int,
+    fechaRegistro date,
+    idMunicipioFk int,
+    constraint fk_cliente_tipo_persona foreign key (idTipoPersonaFk) references tipo_persona(id),
+    constraint fk_cliente_municipio foreign key (idMunicipioFk) references municipio(id)
+);
+
+create table orden (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    fecha date, 
+    idEmpleadoFk int,
+    idClienteFk int,
+    idEstadoFk int,
+    constraint fk_orden_empleado foreign key (idEmpleadoFk) references empleado(id),
+    constraint fk_orden_cliente foreign key (idClienteFk) references cliente(id),
+    constraint fk_orden_estado foreign key (idEstadoFk) references estado(id)
+);
+
+create table proveedor (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nitProveedor varchar(50),
+    nombre varchar(50),
+    idTipoPersonaFk int,
+    idMunicipioFk int,
+    constraint fk_proveedor_tipo_persona foreign key (idTipoPersonaFk) references tipo_persona(id),
+    constraint fk_proveedor_municipio foreign key (idMunicipioFk) references municipio(id)
+); 
+
+create table forma_pago (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+);
+
+create table venta (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    fecha date,
+    idEmpleadoFk int,
+    idClienteFk int,
+    idFormaPagoFk int,
+    constraint fk_venta_empleado foreign key (idEmpleadoFk) references empleado(id),
+    constraint fk_venta_cliente foreign key (idClienteFk) references cliente(id),
+    constraint fk_venta_forma_pago foreign key (idFormaPagoFk) references forma_pago(id)
+); 
+
+create table insumo (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    valor_unit double, 
+    stock_min double,
+    stock_max double
+);
+
+create table insumo_proveedor (
+    idInsumoFk int,
+    idProvedorFk int, 
+    constraint fk_insumo_proveedor_insumo foreign key (idInsumoFk) references insumo(id),
+    constraint fk_insumo_proveedor_proveedor foreign key (idProvedorFk) references proveedor(id)
+); 
+
+create table genero (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+); 
+
+create table tipo_proteccion (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+);
+
+create table prenda (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    nombre varchar(50),
+    valorUnitCop double,
+    valorUnitUsd double,
+    idEstadoFk int,
+    idTipoProteccionFk int,
+    idGeneroFK int,
+    codigo varchar(50),
+    constraint fk_prenda_estado foreign key (idEstadoFk) references estado(id),
+    constraint fk_prenda_tipo_proteccion foreign key (idTipoProteccionFk) references tipo_proteccion(id),
+    constraint fk_prenda_genero foreign key (idGeneroFK) references genero(id)
+);
+
+create table color (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+)
+;
+create table detalle_orden (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    cantidad_producir int(11),
+    cantidad_producida int(11),
+    idColorFk int,
+    idPrendaFk int, 
+    idOrdenFk int, 
+    prendaId int,
+    idEstadoFk int,
+    constraint fk_detalle_orden_color foreign key (idColorFk) references color(id),
+    constraint fk_detalle_orden_orden foreign key (idOrdenFk) references orden(id),
+    constraint fk_detalle_orden_prenda foreign key (prendaId) references prenda(id),
+    constraint fk_detalle_orden_estado foreign key (idEstadoFk) references estado(id)
+); 
+
+create table inventario (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    codInv varchar(50),
+    valorVtaCop double,
+    valorVtaUsd double,
+    idPrendaFk int, 
+    constraint fk_inventario_prenda foreign key (idPrendaFk) references prenda(id)
+);
+
+create table talla (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    descripcion varchar(50)
+); 
+
+create table inventario_talla (
+    idInvFk int,
+    idTallaFk int,
+    constraint fk_inventario_talla_inventario foreign key (idInvFk) references inventario(id),
+    constraint fk_inventario_talla_talla foreign key (idTallaFk) references talla(id)
+); 
+
+create table detalle_venta (
+    id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    idVentaFk int,
+    idProductoFk int,
+    idTallaFk int,
+    cantidad int(11),
+    valor_unit double,
+    constraint fk_detalle_venta_venta foreign key (idVentaFk) references venta(id),
+    constraint fk_detalle_venta_producto foreign key (idProductoFk) references inventario(id),
+    constraint fk_detalle_venta_talla foreign key (idTallaFk) references talla(id)
+); 
+
+create table insumo_prendas (
+    idInsumoFk int, 
+    idPrendaFK int, 
+    cantidad int(11),
+    constraint fk_insumo_prendas_insumo foreign key (idInsumoFk) references insumo(id),
+    constraint fk_insumo_prendas_prenda foreign key (idPrendaFK) references prenda(id)
+); 
+
+/* data */
+
 INSERT INTO cargos (descripcion, sueldo_base)
 VALUES
 ('Vendedor', 1500000),
@@ -144,6 +362,7 @@ VALUES
 ('Daniela Castillo', 2, '2023-09-14', 8),
 ('Andrés Morales', 3, '2023-09-21', 9),
 ('Camila Gutiérrez', 1, '2023-09-28', 10);
+
 INSERT INTO venta (Fecha, IdEmpleadoFk, IdClienteFk, IdFormaPagoFk)
 VALUES
 ('2023-07-20', 1, 1, 1),
@@ -156,7 +375,8 @@ VALUES
 ('2023-09-14', 2, 8, 2),
 ('2023-09-21', 3, 9, 3),
 ('2023-09-28', 1, 10, 1);
-INSERT INTO prenda (Nombre, ValorUnitCop, ValorUnitUsd, IdEstadoFk, IdTipoProteccion, IdGeneroFk, Codigo)
+
+INSERT INTO prenda (Nombre, ValorUnitCop, ValorUnitUsd, IdEstadoFk, idTipoProteccionFk, IdGeneroFk, codigo)
 VALUES
 ('Camiseta de algodón manga corta', 20000, 5, 1, 1, 1, 'PR001'),
 ('Camisa de manga larga', 30000, 7.5, 1, 1, 1, 'PR002'),
@@ -168,6 +388,7 @@ VALUES
 ('Traje de baño', 50000, 12.5, 1, 1, 1, 'PR008'),
 ('Gorra', 10000, 2.5, 1, 1, 1, 'PR009'),
 ('Medias', 5000, 1.25, 1, 1, 1, 'PR010');
+
 
 INSERT INTO inventario (CodInv, IdPrendaFk, ValorVtaCop, ValorVtaUsd)
 VALUES
@@ -190,6 +411,7 @@ VALUES
 (4, 4, 4, 4, 62500),
 (5, 5, 5, 5, 75000),
 (6, 6, 6, 6, 12500);
+
 INSERT INTO orden (fecha, IdEmpleadoFk, IdClienteFk, IdEstadoFk)
 VALUES
 ('2023-07-20', 1, 1, 1),
@@ -198,7 +420,7 @@ VALUES
 ('2023-08-17', 1, 4, 4),
 ('2023-08-24', 2, 5, 5);
 
-INSERT INTO detalle_orden (IdOrdenFk, IdPrendaFk, PrendaId, cantidad_producir, IdColorFk, cantidad_producida, IdEstadoFk)
+INSERT INTO detalle_orden (idOrdenFk, IdPrendaFk, prendaId, cantidad_producir, IdColorFk, cantidad_producida, IdEstadoFk)
 VALUES
 (1, 1, 1, 10, 1, 5, 1),
 (2, 2, 2, 5, 2, 3, 2),
@@ -214,18 +436,14 @@ VALUES
 ('900000000-4', 'Empresa de Textiles S.A.S.', 'Ana García', '2023-04-04', 4),
 ('900000000-5', 'Empresa de Confección S.A.S.', 'Carlos Hernández', '2023-05-05', 5);
 
-INSERT INTO insumo_prendas (IdInsumoFk, IdPrendaFk, Cantidad)
+
+INSERT INTO insumo_prendas (idInsumoFk, idPrendaFk, cantidad)
 VALUES
 (1, 1, 2),
 (2, 2, 1),
 (3, 3, 3),
 (4, 4, 2),
-(5, 5, 1),
-(6, 6, 10),
-(7, 7, 5),
-(8, 8, 3),
-(9, 9, 2),
-(10, 10, 1);
+(5, 5, 1); 
 
 INSERT INTO inventario_talla (IdInvFk, IdTallaFk)
 VALUES
@@ -235,7 +453,7 @@ VALUES
 (4, 4),
 (5, 5);
 
-INSERT INTO proveedor (NitProveedor, Nombre, IdTipoPersona, IdMunicipioFk)
+INSERT INTO proveedor (nitProveedor, nombre, IdTipoPersonaFk, idMunicipioFk)
 VALUES
 ('900000000-1', 'Proveedor 1', 1, 1),
 ('900000000-2', 'Proveedor 2', 2, 2),
@@ -243,38 +461,15 @@ VALUES
 ('900000000-4', 'Proveedor 4', 1, 4),
 ('900000000-5', 'Proveedor 5', 2, 5);
 
-INSERT INTO insumo_proveedor (IdInsumoFk, IdProveedorFk)
+INSERT INTO insumo_proveedor (idInsumoFk, idProvedorFk)
 VALUES
-(1, 6),
-(2, 7),
-(3, 8),
-(4, 9),
-(5, 10);
-use DER;
-SELECT nombre AS NombreEmpleado, DATEDIFF(CURRENT_DATE, fecha_ingreso)/365 AS DuracionEmpleoAnos
-FROM empleado;
-SELECT  * FROM venta INNER JOIN cliente ON venta.IdClienteFk = cliente.Id
-INNER JOIN forma_pago ON venta.IdFormaPagoFk = forma_pago.Id; 
+(1, 3),
+(2, 4),
+(3, 2),
+(4, 1),
+(5, 5);
 
-SELECT detalle_orden.*, empleado.nombre, cliente.nombre FROM detalle_orden 
-INNER JOIN orden ON detalle_orden.IdOrdenFk = orden.Id
-INNER JOIN empleado ON orden.IdEmpleadoFk = empleado.Id
-INNER JOIN cliente ON orden.IdClienteFk = cliente.Id;
-
-SELECT detalle_orden.cantidad_producida,color.Descripcion, prenda.Nombre  FROM detalle_orden 
-INNER JOIN color ON detalle_orden.IdColorFk = color.Id
-INNER JOIN prenda ON detalle_orden.IdPrendaFk = prenda.Id
-; 
-
-SELECT proveedor.Nombre, insumo.nombre FROM insumo_proveedor 
-INNER JOIN proveedor ON insumo_proveedor.IdProveedorFk = proveedor.Id
-INNER JOIN insumo ON insumo_proveedor.IdInsumoFk = insumo.Id
-;
-SELECT  empleado.nombre, COUNT(*) FROM venta 
-INNER JOIN empleado ON venta.IdEmpleadoFk = empleado.Id GROUP BY nombre
-;
-SELECT orden.*, estado.descripcion from detalle_orden
+SELECT * FROM orden 
 INNER JOIN estado ON orden.IdEstadoFk = estado.Id
-INNER JOIN empleado ON orden.Id
-
-
+WHERE descripcion = 'En proceso'
+;
